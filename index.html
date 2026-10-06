@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>College Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">🎓</span>
+      <h1>College Tracker</h1>
+    </div>
+    <div class="top-actions">
+      <button class="btn primary" id="addBtn">+ Add college</button>
+      <button class="btn" id="exportBtn" title="Download your data as a JSON backup">Export</button>
+      <label class="btn" title="Load data from a JSON backup">
+        Import
+        <input type="file" id="importInput" accept="application/json,.json" hidden>
+      </label>
+      <button class="btn ghost" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" id="stats" aria-label="Summary"></section>
+
+    <section class="toolbar" aria-label="Filters">
+      <input type="search" id="search" placeholder="Search name, location, notes…" aria-label="Search">
+      <select id="statusFilter" aria-label="Filter by status"></select>
+      <select id="sortBy" aria-label="Sort by">
+        <option value="rating-desc">Rating (high → low)</option>
+        <option value="name-asc">Name (A → Z)</option>
+        <option value="deadline-asc">Deadline (soonest)</option>
+        <option value="cost-asc">Net cost (low → high)</option>
+        <option value="distance-asc">Distance (closest)</option>
+        <option value="acceptance-desc">Acceptance rate (high → low)</option>
+        <option value="updated-desc">Recently updated</option>
+      </select>
+      <div class="view-toggle" role="group" aria-label="View">
+        <button class="btn small active" data-view="cards">Cards</button>
+        <button class="btn small" data-view="table">Compare</button>
+      </div>
+    </section>
+
+    <section id="list" class="cards"></section>
+    <p id="empty" class="empty" hidden>
+      No colleges yet. Click <strong>+ Add college</strong> to start tracking.
+    </p>
+  </main>
+
+  <footer class="footer">
+    Your data is saved in this browser only. Use <strong>Export</strong> to back it up or move it to another device.
+  </footer>
+
+  <!-- Add / edit dialog -->
+  <dialog id="editor">
+    <form id="form" method="dialog">
+      <header class="dialog-head">
+        <h2 id="formTitle">Add college</h2>
+        <button type="button" class="btn ghost" id="closeBtn" aria-label="Close">✕</button>
+      </header>
+
+      <div class="dialog-body">
+        <fieldset>
+          <legend>Basics</legend>
+          <div class="grid">
+            <label class="span2">College name *
+              <input name="name" required placeholder="e.g. University of Michigan">
+            </label>
+            <label>Location
+              <input name="location" placeholder="City, State">
+            </label>
+            <label>Distance from home (miles)
+              <input name="distance" type="number" min="0" step="1">
+            </label>
+            <label>Website
+              <input name="website" type="url" placeholder="https://">
+            </label>
+            <label>Status
+              <select name="status"></select>
+            </label>
+            <label>Type
+              <select name="type">
+                <option value="">—</option>
+                <option>Public</option>
+                <option>Private</option>
+                <option>Community college</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label>Category
+              <select name="category">
+                <option value="">—</option>
+                <option>Reach</option>
+                <option>Target</option>
+                <option>Safety</option>
+              </select>
+            </label>
+            <label>Intended major
+              <input name="major">
+            </label>
+            <label>Acceptance rate (%)
+              <input name="acceptance" type="number" min="0" max="100" step="0.1">
+            </label>
+          </div>
+          <div class="rating-field">
+            <span>My rating</span>
+            <div class="star-input" id="starInput" role="radiogroup" aria-label="Rating"></div>
+            <input type="hidden" name="rating">
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Cost (per year, USD)</legend>
+          <div class="grid">
+            <label>Tuition &amp; fees
+              <input name="tuition" type="number" min="0" step="1">
+            </label>
+            <label>Room &amp; board
+              <input name="roomBoard" type="number" min="0" step="1">
+            </label>
+            <label>Scholarships / grants
+              <input name="aid" type="number" min="0" step="1">
+            </label>
+            <label>Estimated net cost
+              <output id="netCost">—</output>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Application</legend>
+          <div class="grid">
+            <label>Plan
+              <select name="plan">
+                <option value="">—</option>
+                <option>Early Decision</option>
+                <option>Early Action</option>
+                <option>Restrictive Early Action</option>
+                <option>Regular Decision</option>
+                <option>Rolling</option>
+              </select>
+            </label>
+            <label>Deadline
+              <input name="deadline" type="date">
+            </label>
+            <label>Application fee ($)
+              <input name="appFee" type="number" min="0" step="1">
+            </label>
+            <label>Platform
+              <select name="platform">
+                <option value="">—</option>
+                <option>Common App</option>
+                <option>Coalition</option>
+                <option>School's own</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label>Min GPA / avg GPA
+              <input name="gpa" placeholder="e.g. 3.8 avg">
+            </label>
+            <label>Test policy / scores
+              <input name="tests" placeholder="e.g. Test optional, SAT 1400–1530">
+            </label>
+          </div>
+
+          <div class="req-head">
+            <span>Requirements checklist</span>
+            <small>Tick a box once it's done</small>
+          </div>
+          <div id="reqList" class="req-list"></div>
+          <div class="req-add">
+            <input id="reqNew" placeholder="Add a custom requirement…" aria-label="New requirement">
+            <button type="button" class="btn small" id="reqAddBtn">Add</button>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Thoughts</legend>
+          <div class="grid">
+            <label>Pros
+              <textarea name="pros" rows="3" placeholder="One per line"></textarea>
+            </label>
+            <label>Cons
+              <textarea name="cons" rows="3" placeholder="One per line"></textarea>
+            </label>
+            <label class="span2">Personal notes
+              <textarea name="notes" rows="4" placeholder="Visit impressions, people you talked to, anything else…"></textarea>
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
+      <footer class="dialog-foot">
+        <button type="button" class="btn danger" id="deleteBtn" hidden>Delete</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
